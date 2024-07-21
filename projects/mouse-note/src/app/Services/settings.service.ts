@@ -1,6 +1,7 @@
 import { EventEmitter, Injectable } from '@angular/core';
 import { StorageMap } from '@ngx-pwa/local-storage';
 import { PlayerControlService } from './player-control.service';
+import { ElectronService } from './electron.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,13 @@ export class SettingsService {
   bigStepBackwardEvent = new EventEmitter();
   smallStepBackwardEvent = new EventEmitter();
 
-  constructor(private storage: StorageMap, public playerControls: PlayerControlService) {
+  constructor(private storage: StorageMap, public playerControls: PlayerControlService,private electronService: ElectronService) {
+    this.electronService.on('returning-settings', (data: SettingsModel) => {
+      this.settings = <SettingsModel>data;
+      this.playerControls.videoMagnification = this.settings.defaultMagnification;
+      this.playerControls.timelineZoom = this.settings.defaultTimelineZoom;
+      this.playerControls.videoSpeed = this.settings.defaultSpeed;
+    });
     this.retrieveStoredSettings();
   }
 
@@ -26,20 +33,22 @@ export class SettingsService {
   }
 
   storeSettings() {
-    this.storage.set(this.key, this.settings).subscribe(() => { });
+    this.electronService.send('save-settings', this.settings);
+    // this.storage.set(this.key, this.settings).subscribe(() => { });
   }
 
   retrieveStoredSettings() {
-    this.storage.get(this.key).subscribe((data) => {
-      if (data == undefined) {
-        this.settings = new SettingsModel();
-        return;
-      }
-      this.settings = <SettingsModel>data;
-      this.playerControls.videoMagnification = this.settings.defaultMagnification;
-      this.playerControls.timelineZoom = this.settings.defaultTimelineZoom;
-      this.playerControls.videoSpeed = this.settings.defaultSpeed;
-    });
+    this.electronService.send('get-settings', '');
+    // this.storage.get(this.key).subscribe((data) => {
+    //   if (data == undefined) {
+    //     this.settings = new SettingsModel();
+    //     return;
+    //   }
+    //   this.settings = <SettingsModel>data;
+    //   this.playerControls.videoMagnification = this.settings.defaultMagnification;
+    //   this.playerControls.timelineZoom = this.settings.defaultTimelineZoom;
+    //   this.playerControls.videoSpeed = this.settings.defaultSpeed;
+    // });
   }
 
   checkHotkeys(key: string): boolean {

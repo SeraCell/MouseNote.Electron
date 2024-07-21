@@ -9,7 +9,8 @@ contextBridge.exposeInMainWorld('electron', {
   },
   on: (channel: string, func: (...args: any[]) => void) => {
     const newFunc = (...args: any[]) => func(...args);
-    ipcRenderer.on(channel, newFunc);
+    // ipcRenderer.on(channel, newFunc);
+    ipcRenderer.on(channel, (event, ...args) => func(...args));
   },
   sendSync: (channel: string, data: any) => {
     return ipcRenderer.sendSync(channel, data);

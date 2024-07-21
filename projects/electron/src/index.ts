@@ -1,5 +1,7 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import path from 'path';
+import { FileService } from "./services/file-service";
+import { SettingsService } from "./services/settings-service";
 const { updateElectronApp } = require('update-electron-app')
 updateElectronApp()
 
@@ -22,7 +24,6 @@ const createWindow = (): void => {
   });
 
 
-console.log(__dirname);
   // const startURL = app.isPackaged ? `dist/mouse-note/browser/index.html` : `http://localhost:4200`;
   const startURL = app.isPackaged ? `file://${path.join(__dirname, 'mouse-note/browser','index.html')}` : `http://localhost:4200`;
   
@@ -57,3 +58,6 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+
+new SettingsService().startSettingsService();
+
